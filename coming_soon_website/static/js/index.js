@@ -39,13 +39,23 @@ container.appendChild(renderer.domElement); // append the renderer to container 
 ///// CAMERAS CONFIG
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 scene.add(camera);
-camera.position.set(20, 70, 100);
+camera.position.set(20, 69, 100);
 
 /////////////////////////////////////////////////////////////////////////
 ///// CREATING LIGHT
 const light = new THREE.PointLight(0xffffff, 1);
 light.position.set(0, 50, 0);
+// const light2 = new THREE.PointLight(0xffffff, 1);
+// light2.position.set(0, 0, 0);
+const light3 = new THREE.PointLight(0x00ff00, 0.1);
+light3.position.set(20, 10, 100);
+const rectLight = new THREE.RectAreaLight(0x87ceeb, 5, 100, 100);
+rectLight.position.set(0, 100, 0);
+rectLight.lookAt(0, 0, 0);
+scene.add(rectLight);
 scene.add(light);
+// scene.add(light2);
+scene.add(light3);
 
 /////////////////////////////////////////////////////////////////////////
 ///// CREATE ORBIT CONTROLS
