@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Coming Soon</title>
+    <meta name="description" content="Coming Soon page for dhanak iist by Abhishek Verma" />
+    <meta name="keywords" content="dhanak, DHANAK, IIST, iist, fest, cultural, cultural-fest" />
+    <meta name="author" content="Abhishek Verma" />
+    
+    {% load static %}
+    
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.145.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.145.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <script type="module" src="{% static 'index.js' %}"></script>
+  </body>
+</html>
