@@ -1,100 +1,217 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
-import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import{DRACOLoader} from 'three/addons/loaders/DRACOLoader.js'
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js'
 
-/////////////////////////////////////////////////////////////////////////
-//// DRACO LOADER TO LOAD DRACO COMPRESSED MODELS FROM BLENDER
-const dracoLoader = new DRACOLoader();
-const loader = new GLTFLoader();
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-dracoLoader.setDecoderConfig({type: 'js'});
-loader.setDRACOLoader(dracoLoader);
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('draco/')
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader)
 
-/////////////////////////////////////////////////////////////////////////
-///// DIV CONTAINER CREATION TO HOLD THREEJS EXPERIENCE
-const container = document.createElement('div');
-document.body.appendChild(container);
-container.classList.add('threejs');
 
-/////////////////////////////////////////////////////////////////////////
-///// SCENE CREATION
+// Initialization of cursor object
+const cursor = { x: 0, y: 0 }; 
+// CANVAS*************************************
+const canvas = document.querySelector('canvas.webgl')
+
+
+// Define sizes object to capture window size
+const sizes = {
+width: window.innerWidth,
+height: window.innerHeight,
+};
+
+
+// **************RESIZE FUNCTION***********
+window.addEventListener('resize',()=>
+{
+	sizes.width = window.innerWidth 
+	sizes.height = window.innerHeight
+
+	//UPDATE CAMERA
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+
+	// UPDATE RENDERER
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio,10))
+    renderer.setClearAlpha()
+})
+
+// For turning window in full screen
+window.addEventListener('dblclick', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+        console.log('go fullscreen')
+    } else {
+        console.log('leave fullscreen')
+        document.exitFullscreen()
+    }
+})
+
+// *******FUNCTION FOR CONTROLLING BY MOUSE********
+window.addEventListener('mousemove', (event) => {
+cursor.x = event.clientX / sizes.width - 0.5;
+cursor.y = -(event.clientY / sizes.height - 0.5);
+
+});
+
+/**
+ * SCENE And FOG
+ */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog( 0x01AFA3, 3, 18 );
 
-/////////////////////////////////////////////////////////////////////////
-///// RENDERER CREATION
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  powerPreference: 'high-performance',
-}); // turn on antialias
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); //set pixel ratio
-renderer.setSize(window.innerWidth, window.innerHeight); // make it full screen
-renderer.outputEncoding = THREE.sRGBEncoding; // set color encoding
-renderer.toneMapping = THREE.LinearToneMapping; // set the toneMapping
-container.appendChild(renderer.domElement); // append the renderer to container div element
+/**
+ * CAMERA
+ */
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 7;
 
-/////////////////////////////////////////////////////////////////////////
-///// CAMERAS CONFIG
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-scene.add(camera);
-camera.position.set(20, 69, 100);
+/**
+ * RENDERER
+ */
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+renderer.setClearColor(0x01AFA3, 1);
+renderer.outputColorSpace = THREE.SRGBColorSpace
+// renderer.shadowMap.type = THREE.PCFSoftShadowMap  // shadow radius doen't work with this map 
+// renderer.shadowMap.enabled = true;
 
-/////////////////////////////////////////////////////////////////////////
-///// CREATING LIGHT
-const light = new THREE.PointLight(0xffffff, 1);
-light.position.set(0, 50, 0);
-// const light2 = new THREE.PointLight(0xffffff, 1);
-// light2.position.set(0, 0, 0);
-const light3 = new THREE.PointLight(0x00ff00, 0.1);
-light3.position.set(20, 10, 100);
-const rectLight = new THREE.RectAreaLight(0x87ceeb, 5, 100, 100);
-rectLight.position.set(0, 100, 0);
-rectLight.lookAt(0, 0, 0);
-scene.add(rectLight);
-scene.add(light);
-// scene.add(light2);
-scene.add(light3);
+// Texture Loader
+const textureloader = new THREE.TextureLoader()
+const bakedTexture = textureloader.load(document.getElementById('texture').value) // TEXTURE FOR BLENDER MODEL 
+bakedTexture.flipY = false
+bakedTexture.colorSpace = THREE.SRGBColorSpace 
 
-/////////////////////////////////////////////////////////////////////////
-///// CREATE ORBIT CONTROLS
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 2.2, 0);
-controls.autoRotate = true;
+// Textures
+// const imagetexture = textureloader.load('Assets/background.jpg')
+// 	imagetexture.wrapS = THREE.RepeatWrapping;
+//   	imagetexture.wrapT = THREE.RepeatWrapping;
+//   	imagetexture.repeat.set(1,1);
+// scene.background = imagetexture
+
+// const context = canvas.getContext('2d');
+
+const directionalLight = new THREE.DirectionalLight( 0xffffff,0.3);
+directionalLight.position.set(0.2,1.06,0.19)
+directionalLight.castShadow = true // Important to note for shadows
+directionalLight.shadow.mapSize.width = 1024
+directionalLight.shadow.mapSize.height = 1024
+directionalLight.shadow.mapSize.top = 3
+directionalLight.shadow.mapSize.right= 3
+directionalLight.shadow.mapSize.bottom = -3
+directionalLight.shadow.mapSize.left = -3
+directionalLight.shadow.camera.near = -4
+directionalLight.shadow.camera.far = 45
+
+scene.add( directionalLight );
+
+/**
+ * Materials
+ */
+const material2 = new THREE.MeshStandardMaterial({
+	color: 0x01AFA3,
+})
+material2.metalness = 0.2
+material2.roughness = 0
+
+const material3 = new THREE.MeshBasicMaterial({
+    map: bakedTexture
+})
+
+// 
+let loadedModel;
+gltfLoader.load(document.getElementById('model').value,
+    (gltf) =>{
+        gltf.scene.traverse((child) =>{
+            child.material = material3
+        })
+        // Store the loaded model for later manipulation
+        loadedModel = gltf.scene;
+        loadedModel.position.y = -1
+        loadedModel.position.x = 2
+        loadedModel.rotation.y = Math.PI*0.5 
+        loadedModel.castShadow = true,
+        scene.add(loadedModel);
+    }
+)
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(10,10),
+    material2
+)
+floor.rotation.x = -Math.PI *0.5
+floor.position.y = -1.5
+floor.receiveShadow = true
+scene.add(floor)
+
+// *******Axes Helper => Very Important***
+const axesHelper = new THREE.AxesHelper(3);
+scene.add( axesHelper );
+
+//Controls
+const controls = new OrbitControls( camera, renderer.domElement);
 controls.enableDamping = true;
+// controls.dampingFactor = 0; // Adjust damping factor as needed
 
-/////////////////////////////////////////////////////////////////////////
-///// LOADING THE TEXTURE FOR THE ENVIRONMENT
-new RGBELoader().load('../assets/envmap.hdr', function (texture) {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = texture;
-});
+/**
+*Don't coomentout Because I have removed MATCAPS from aasets
+*/
+// const fontLoader = new FontLoader()
+// fontLoader.load(
+//     'static/textures/Fonts/optimer_bold.typeface.json', 
+//     (font)=>
+//     {
+//         console.log(font)
+//             const textGeometry = new TextGeometry( 'DHANKAK 2024', {
+//                 font: font,
+// 				width: 0.01,
+//                 size: 0.5,
+//                 height: 0.3,
+//                 curveSegments: 6,
+//                 bevelEnabled: true,
+//                 bevelThickness: 0.03,
+//                 bevelSize: 0.02,
+//                 bevelOffset: 0,
+//                 bevelSegments: 8
+//             } 
+//         )
+//         textGeometry.computeBoundingBox()
+//         textGeometry.center()
+//         // Textures 
+//         const textureloader = new THREE.TextureLoader()
+//         const matcapTexture = textureloader.load('static/textures/matcaps/matcap (7).png') 
+//         const material = new THREE.MeshMatcapMaterial({
+//             // flatShading: true,
+//             matcap: matcapTexture
+//         })
+//         const text =  new THREE.Mesh(textGeometry,material)
+//         scene.add(text)
+//     }
+// )
+//clock
+const clock = new THREE.Clock()
+// let oldElapsedTime = 0
+//*****************ANIMATION************
+function animate() {
+	const elapsedTime = clock.getElapsedTime()
+	// const deltaTime = elapsedTime-oldElapsedTime
+	// oldElapsedTime = elapsedTime
+	camera.lookAt(new THREE.Vector3())
+	
+    // // // Rotate the model
+    if (loadedModel) {
+        loadedModel.rotation.y = elapsedTime* -0.5;
+        // loadedModel.sizes.set(1,1,1)
+    }
 
-/////////////////////////////////////////////////////////////////////////
-///// LOADING GLB/GLTF MODEL FROM BLENDER
-loader.load(document.getElementById("modelLink").value, function (gltf) {
-  scene.add(gltf.scene);
-});
+	controls.update();
+	renderer.render( scene, camera );
+	requestAnimationFrame( animate );
 
-/////////////////////////////////////////////////////////////////////////
-//// RENDER LOOP FUNCTION
-function rendeLoop() {
-  controls.update(); // update orbit controls
-  renderer.render(scene, camera); //render the scene without the composer
-  requestAnimationFrame(rendeLoop); //loop the render function
+	// console.log(renderer.info) // We can see the calls and other performance related things
+	
 }
-
-rendeLoop(); //start rendering
-
-/////////////////////////////////////////////////////////////////////////
-///// MAKE EXPERIENCE FULL SCREEN
-window.addEventListener('resize', () => {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-});
+// Start the animation loop
+animate(); 
