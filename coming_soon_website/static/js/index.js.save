@@ -147,8 +147,8 @@ floor.receiveShadow = true
 scene.add(floor)
 
 // *******Axes Helper => Very Important***
-//const axesHelper = new THREE.AxesHelper(3);
-//scene.add( axesHelper );
+const axesHelper = new THREE.AxesHelper(3);
+scene.add( axesHelper );
 
 //Controls
 const controls = new OrbitControls( camera, renderer.domElement);

@@ -130,8 +130,8 @@ gltfLoader.load(document.getElementById('model').value,
         })
         // Store the loaded model for later manipulation
         loadedModel = gltf.scene;
-        loadedModel.position.y = 0
-        loadedModel.position.x = 0
+        loadedModel.position.y = -1
+        loadedModel.position.x = 2
         loadedModel.rotation.y = Math.PI*0.5 
         loadedModel.castShadow = true,
         scene.add(loadedModel);
@@ -147,8 +147,8 @@ floor.receiveShadow = true
 scene.add(floor)
 
 // *******Axes Helper => Very Important***
-//const axesHelper = new THREE.AxesHelper(3);
-//scene.add( axesHelper );
+const axesHelper = new THREE.AxesHelper(3);
+scene.add( axesHelper );
 
 //Controls
 const controls = new OrbitControls( camera, renderer.domElement);
